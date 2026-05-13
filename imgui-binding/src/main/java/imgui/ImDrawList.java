@@ -6,6 +6,9 @@ import imgui.binding.annotation.BindingField;
 import imgui.binding.annotation.BindingMethod;
 import imgui.binding.annotation.BindingSource;
 import imgui.binding.annotation.OptArg;
+import imgui.callback.ImDrawCallback;
+
+import java.util.Objects;
 
 /**
  * Draw command list
@@ -27,6 +30,25 @@ public final class ImDrawList extends ImGuiStruct {
     /*JNI
         #include "_common.h"
         #define THIS ((ImDrawList*)STRUCT_PTR)
+
+        struct ImDrawCallbackUserData {
+            jobject handler;
+            jlong userData;
+        };
+
+        static void ImDrawListUserCallback(const ImDrawList* parentList, const ImDrawCmd* cmd) {
+            ImDrawCallbackUserData* callbackData = (ImDrawCallbackUserData*)cmd->UserCallbackData;
+            if (callbackData == NULL || callbackData->handler == NULL) {
+                return;
+            }
+
+            JNIEnv* env = Jni::GetEnv();
+            Jni::CallImDrawCallback(env, callbackData->handler, parentList, cmd, callbackData->userData);
+            env->DeleteGlobalRef(callbackData->handler);
+            callbackData->handler = NULL;
+            IM_DELETE(callbackData);
+            const_cast<ImDrawCmd*>(cmd)->UserCallbackData = NULL;
+        }
      */
 
     /**
@@ -215,6 +237,45 @@ public final class ImDrawList extends ImGuiStruct {
 
     @BindingMethod
     public native void PathRect(ImVec2 rectMin, ImVec2 rectMax, @OptArg(callValue = "0.0f") float rounding, @OptArg int imDrawFlags);
+
+    // Advanced: Draw Callbacks
+
+    /**
+     * Add a draw callback command.
+     *
+     * @param callback callback to call from the renderer backend
+     */
+    public void addDrawCallback(final ImDrawCallback callback) {
+        addDrawCallback(callback, 0L);
+    }
+
+    /**
+     * Add a draw callback command with custom user data.
+     *
+     * @param callback callback to call from the renderer backend
+     * @param userData custom data passed back to the callback
+     */
+    public void addDrawCallback(final ImDrawCallback callback, final long userData) {
+        nAddDrawCallback(Objects.requireNonNull(callback, "callback"), userData);
+    }
+
+    private native void nAddDrawCallback(ImDrawCallback callback, long userData); /*
+        ImDrawCallbackUserData* callbackData = IM_NEW(ImDrawCallbackUserData)();
+        callbackData->handler = env->NewGlobalRef(callback);
+        if (callbackData->handler == NULL) {
+            IM_DELETE(callbackData);
+            return;
+        }
+        callbackData->userData = userData;
+        THIS->AddCallback(&ImDrawListUserCallback, callbackData);
+    */
+
+    /**
+     * Add the special callback command requesting the renderer backend to reset render state.
+     */
+    public native void addDrawCallbackResetRenderState(); /*
+        THIS->AddCallback(ImDrawCallback_ResetRenderState, NULL);
+    */
 
     // Advanced: Channels
     // - Use to split render into layers. By switching channels to can render out-of-order (e.g. submit FG primitives before BG primitives)

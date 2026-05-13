@@ -8,6 +8,8 @@ namespace Jni
 
     void CallImListClipperCallback(JNIEnv* env, jobject consumer, int index);
 
+    void CallImDrawCallback(JNIEnv* env, jobject callback, const void* parentList, const void* drawCmd, jlong userData);
+
     void CallImStrConsumer(JNIEnv* env, jobject consumer, const char* str);
 
     jstring CallImStrSupplier(JNIEnv* env, jobject supplier);

@@ -40,6 +40,31 @@ public final class ImDrawData extends ImGuiStruct {
     */
 
     /**
+     * Whether the draw command has a user callback.
+     */
+    public native boolean hasCmdListCmdBufferUserCallback(int cmdListIdx, int cmdBufferIdx); /*
+        return THIS->CmdLists[cmdListIdx]->CmdBuffer[cmdBufferIdx].UserCallback != NULL;
+    */
+
+    /**
+     * Whether the draw command requests a renderer state reset.
+     */
+    public native boolean isCmdListCmdBufferUserCallbackResetRenderState(int cmdListIdx, int cmdBufferIdx); /*
+        return THIS->CmdLists[cmdListIdx]->CmdBuffer[cmdBufferIdx].UserCallback == ImDrawCallback_ResetRenderState;
+    */
+
+    /**
+     * Call the draw command user callback.
+     */
+    public native void callCmdListCmdBufferUserCallback(int cmdListIdx, int cmdBufferIdx); /*
+        const ImDrawList* drawList = THIS->CmdLists[cmdListIdx];
+        const ImDrawCmd* cmd = &drawList->CmdBuffer[cmdBufferIdx];
+        if (cmd->UserCallback != NULL && cmd->UserCallback != ImDrawCallback_ResetRenderState) {
+            cmd->UserCallback(drawList, cmd);
+        }
+    */
+
+    /**
      * Number of indices (multiple of 3) to be rendered as triangles.
      * Vertices are stored in the callee ImDrawList's vtx_buffer[] array, indices in idx_buffer[].
      */

@@ -1,6 +1,8 @@
 #include "jni_callbacks.h"
+#include <stdint.h>
 
 jmethodID jImListClipperCallbackAcceptMID;
+jmethodID jImDrawCallbackAcceptMID;
 
 jmethodID jImStrConsumerAcceptMID;
 jmethodID jImStrSupplierGetMID;
@@ -19,6 +21,9 @@ namespace Jni
     void InitCallbacks(JNIEnv* env) {
         jclass jImListClipperCallback = env->FindClass("imgui/callback/ImListClipperCallback");
         jImListClipperCallbackAcceptMID = env->GetMethodID(jImListClipperCallback, "accept", "(I)V");
+
+        jclass jImDrawCallback = env->FindClass("imgui/callback/ImDrawCallback");
+        jImDrawCallbackAcceptMID = env->GetMethodID(jImDrawCallback, "accept", "(JJJ)V");
 
         jclass jImStrConsumer = env->FindClass("imgui/callback/ImStrConsumer");
         jImStrConsumerAcceptMID = env->GetMethodID(jImStrConsumer, "accept", "(Ljava/lang/String;)V");
@@ -53,6 +58,10 @@ namespace Jni
 
     void CallImListClipperCallback(JNIEnv* env, jobject consumer, int index) {
         env->CallVoidMethod(consumer, jImListClipperCallbackAcceptMID, index);
+    }
+
+    void CallImDrawCallback(JNIEnv* env, jobject callback, const void* parentList, const void* drawCmd, jlong userData) {
+        env->CallVoidMethod(callback, jImDrawCallbackAcceptMID, (jlong)(uintptr_t)parentList, (jlong)(uintptr_t)drawCmd, userData);
     }
 
     void CallImStrConsumer(JNIEnv* env, jobject consumer, const char* str) {

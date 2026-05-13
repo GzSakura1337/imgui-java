@@ -665,6 +665,19 @@ public class ImGuiImplSdlGpu3 {
             for (int n = 0; n < drawData.getCmdListsCount(); n++) {
                 final int cmdCount = drawData.getCmdListCmdBufferSize(n);
                 for (int cmdIdx = 0; cmdIdx < cmdCount; cmdIdx++) {
+                    if (drawData.hasCmdListCmdBufferUserCallback(n, cmdIdx)) {
+                        if (drawData.isCmdListCmdBufferUserCallbackResetRenderState(n, cmdIdx)) {
+                            SDL_SetGPUViewport(renderPassPtr, viewport);
+                            SDL_BindGPUGraphicsPipeline(renderPassPtr, usePipeline);
+                            SDL_BindGPUVertexBuffers(renderPassPtr, 0, vBindings);
+                            SDL_BindGPUIndexBuffer(renderPassPtr, iBinding, indexElementSize);
+                            SDL_PushGPUVertexUniformData(commandBufferPtr, 0, ubo);
+                        } else {
+                            drawData.callCmdListCmdBufferUserCallback(n, cmdIdx);
+                        }
+                        continue;
+                    }
+
                     drawData.getCmdListCmdBufferClipRect(clipRect, n, cmdIdx);
                     final float clipMinX = (clipRect.x - clipOffX) * clipScaleX;
                     final float clipMinY = (clipRect.y - clipOffY) * clipScaleY;

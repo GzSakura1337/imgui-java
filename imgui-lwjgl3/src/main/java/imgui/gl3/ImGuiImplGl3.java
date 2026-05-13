@@ -539,9 +539,14 @@ public class ImGuiImplGl3 {
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, drawData.getCmdListIdxBufferData(n), GL_STREAM_DRAW);
 
             for (int cmdIdx = 0; cmdIdx < drawData.getCmdListCmdBufferSize(n); cmdIdx++) {
-                // TODO:
-                // if userCallback
-                // else
+                if (drawData.hasCmdListCmdBufferUserCallback(n, cmdIdx)) {
+                    if (drawData.isCmdListCmdBufferUserCallbackResetRenderState(n, cmdIdx)) {
+                        setupRenderState(drawData, fbWidth, fbHeight, vertexArrayObject);
+                    } else {
+                        drawData.callCmdListCmdBufferUserCallback(n, cmdIdx);
+                    }
+                    continue;
+                }
 
                 drawData.getCmdListCmdBufferClipRect(props.clipRect, n, cmdIdx);
 
